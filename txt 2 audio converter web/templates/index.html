@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Txt to Audio</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --bg-color: #f3f4f6;
+        --card-bg: #ffffff;
+        --text-main: #111827;
+        --text-muted: #4b5563;
+        --border: #d1d5db;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      /* --- Navbar --- */
+      .navbar {
+        width: 100%;
+        background: var(--card-bg);
+        padding: 15px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 40px;
+      }
+      .nav-title h1 {
+        font-size: 18px;
+        color: var(--text-main);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .nav-title span {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .nav-btn {
+        background: #f3f4f6;
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .nav-btn:hover {
+        background: #e5e7eb;
+      }
+
+      /* --- Modals --- */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal-box {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      }
+      .modal-box h2 {
+        margin-bottom: 15px;
+        font-size: 20px;
+      }
+      .modal-box p {
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        line-height: 1.5;
+        font-size: 15px;
+      }
+
+      .update-item {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border);
+      }
+      .update-item h4 {
+        color: var(--text-main);
+        margin-bottom: 5px;
+        font-size: 15px;
+      }
+      .update-item p {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      .modal-btn {
+        background: var(--text-main);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      /* --- Main Layout --- */
+      .main-container {
+        background: var(--card-bg);
+        width: 95%;
+        max-width: 1100px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        display: flex;
+        overflow: hidden;
+        margin-bottom: 40px;
+      }
+
+      /* --- Left Panel: Result & History --- */
+      .left-panel {
+        flex: 1;
+        background: #fafafa;
+        padding: 30px;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+      .left-panel h3 {
+        margin-bottom: 20px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .empty-state {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-bottom: 30px;
+      }
+
+      .success-area {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+      }
+      .success-area p {
+        color: #166534;
+        font-weight: 500;
+        font-size: 14px;
+        margin: 0;
+        text-align: center;
+      }
+      audio {
+        width: 100%;
+        margin-bottom: 15px;
+        height: 40px;
+      }
+
+      .download-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 30px;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+      }
+      .download-btn:hover {
+        background: var(--primary-hover);
+      }
+
+      /* History Section */
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+      }
+      .history-header h4 {
+        font-size: 15px;
+        color: var(--text-main);
+      }
+      .clear-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: #dc2626;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .clear-btn:hover {
+        background: #fef2f2;
+      }
+
+      .history-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .history-list li {
+        background: white;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+      .hist-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .hist-time {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+      .reconvert-btn {
+        background: #f3f4f6;
+        border: 1px solid var(--border);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--primary);
+      }
+      .reconvert-btn:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+      }
+      .hist-text {
+        font-size: 13px;
+        color: var(--text-main);
+        word-break: break-word;
+      }
+
+      /* --- Right Panel: Inputs & Settings --- */
+      .right-panel {
+        flex: 1.5;
+        padding: 30px;
+      }
+      .right-panel h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+      .description {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-bottom: 25px;
+        line-height: 1.5;
+      }
+
+      .settings-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .settings-box {
+        flex: 1;
+      }
+      .settings-box label {
+        display: block;
+        font-size: 13px;
+        color: var(--text-main);
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      .settings-box select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+      }
+
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 14px;
+        resize: none;
+        margin-bottom: 20px;
+      }
+      textarea:focus {
+        border-color: var(--primary);
+        outline: none;
+      }
+
+      .convert-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 500;
+        width: 100%;
+        cursor: pointer;
+      }
+      .convert-btn:hover {
+        background: var(--primary-hover);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <div class="navbar">
+      <div class="nav-title">
+        <h1>Simple Py</h1>
+        <span>Txt to Audio Converter</span>
+      </div>
+      <button class="nav-btn" onclick="openModal('updatesModal')">
+        Click for Upcoming Updates
+      </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="welcomeModal" class="modal-overlay" style="display: flex">
+      <div class="modal-box">
+        <h2>Welcome to Audio Converter</h2>
+        <p>
+          Convert your text documents into MP3 audio files. Paste your text
+          below to get started.
+        </p>
+        <button class="modal-btn" onclick="closeModal('welcomeModal')">
+          Start Converting
+        </button>
+      </div>
+    </div>
+
+    <div id="updatesModal" class="modal-overlay">
+      <div class="modal-box">
+        <h2>Upcoming Updates</h2>
+        <div class="update-item">
+          <h4>Language Support</h4>
+          <p>
+            Support for regional languages (Tamil, Hindi, Malayalam) will be
+            added soon.
+          </p>
+        </div>
+        <div class="update-item">
+          <h4>Database Integration</h4>
+          <p>
+            Integration with PostgreSQL for user history and AWS S3 for
+            permanent file storage.
+          </p>
+        </div>
+        <button class="modal-btn" onclick="closeModal('updatesModal')">
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Tool -->
+    <div class="main-container">
+      <!-- Left Panel: Output -->
+      <div class="left-panel">
+        <h3>Output</h3>
+
+        <div id="emptyState" class="empty-state">No audio generated yet.</div>
+        <p
+          id="loadingText"
+          style="
+            display: none;
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 20px;
+          "
+        >
+          Generating audio...
+        </p>
+
+        <div id="resultBox" style="display: none">
+          <div class="success-area"><p>Audio Converted Successfully!</p></div>
+          <audio id="audioPlayer" controls></audio>
+          <a
+            id="downloadLink"
+            href="#"
+            download="voice.mp3"
+            class="download-btn"
+            >Download MP3</a
+          >
+        </div>
+
+        <!-- History Section -->
+        <div class="history-header">
+          <h4>Recent History</h4>
+          <button onclick="clearHistory()" class="clear-btn">
+            Clear History
+          </button>
+        </div>
+        <ul class="history-list" id="historyList">
+          <li
+            id="noHistory"
+            style="
+              color: var(--text-muted);
+              font-size: 13px;
+              border: none;
+              padding: 0;
+              background: none;
+            "
+          >
+            No recent conversions.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right Panel: Input -->
+      <div class="right-panel">
+        <h2>Text Input</h2>
+        <p class="description">
+          Enter your text below and select the reading speed to generate an
+          audio file. Note: Currently supports English only.
+        </p>
+
+        <div class="settings-row">
+          <div class="settings-box">
+            <label>Language</label>
+            <select disabled>
+              <option>English</option>
+            </select>
+          </div>
+          <div class="settings-box">
+            <label>Audio Speed</label>
+            <select id="speedSelect">
+              <option value="normal">Normal</option>
+              <option value="slow">Slow</option>
+              <option value="fast">Fast (1.5x)</option>
+            </select>
+          </div>
+        </div>
+
+        <textarea id="textInput" placeholder="Enter text here..."></textarea>
+
+        <button onclick="convertText()" class="convert-btn">
+          Convert to Audio
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function openModal(id) {
+        document.getElementById(id).style.display = "flex";
+      }
+      function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
+      function addHistory(text) {
+        const list = document.getElementById("historyList");
+        const noHistory = document.getElementById("noHistory");
+        if (noHistory) noHistory.remove();
+
+        const timeString = new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        let preview = text.substring(0, 40);
+        if (text.length > 40) preview += "...";
+
+        const li = document.createElement("li");
+        const safeText = text.replace(/"/g, "&quot;");
+
+        li.innerHTML = `
+                <div class="hist-top">
+                    <span class="hist-time">${timeString}</span>
+                    <button class="reconvert-btn" onclick="reconvert(this)">Re-convert</button>
+                </div>
+                <div class="hist-text" data-fulltext="${safeText}">${preview}</div>
+            `;
+        list.insertBefore(li, list.firstChild);
+      }
+
+      function reconvert(btn) {
+        const fullText =
+          btn.parentElement.nextElementSibling.getAttribute("data-fulltext");
+        document.getElementById("textInput").value = fullText;
+        convertText();
+      }
+
+      function clearHistory() {
+        document.getElementById("historyList").innerHTML = `
+                <li id="noHistory" style="color: var(--text-muted); font-size: 13px; border: none; padding: 0; background: none;">No recent conversions.</li>
+            `;
+      }
+
+      function convertText() {
+        const text = document.getElementById("textInput").value;
+        const speed = document.getElementById("speedSelect").value;
+
+        const emptyState = document.getElementById("emptyState");
+        const loadingText = document.getElementById("loadingText");
+        const resultBox = document.getElementById("resultBox");
+        const audioPlayer = document.getElementById("audioPlayer");
+        const downloadLink = document.getElementById("downloadLink");
+
+        if (!text.trim()) {
+          alert("Please enter some text.");
+          return;
+        }
+
+        emptyState.style.display = "none";
+        resultBox.style.display = "none";
+        loadingText.style.display = "block";
+
+        fetch("/convert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text, speed: speed }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            loadingText.style.display = "none";
+
+            if (data.audio_url) {
+              resultBox.style.display = "block";
+              const antiCacheUrl =
+                data.audio_url + "?t=" + new Date().getTime();
+
+              audioPlayer.src = antiCacheUrl;
+              downloadLink.href = antiCacheUrl;
+
+              if (speed === "fast") {
+                audioPlayer.playbackRate = 1.5;
+              } else {
+                audioPlayer.playbackRate = 1.0;
+              }
+
+              audioPlayer.play();
+              addHistory(text);
+            } else {
+              emptyState.style.display = "block";
+              alert("Error: " + data.error);
+            }
+          })
+          .catch((error) => {
+            loadingText.style.display = "none";
+            emptyState.style.display = "block";
+            alert("Conversion failed. Check server.");
+          });
+      }
+    </script>
+  </body>
+</html>
